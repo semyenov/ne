@@ -4,7 +4,7 @@
   # Minimal home-manager configuration for enterprise users
   # Most configuration is handled by the enterprise module
   
-  home.stateVersion = "24.11";
+  home.stateVersion = "25.05";
   
   # Basic shell configuration
   programs = {

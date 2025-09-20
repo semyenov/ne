@@ -170,7 +170,7 @@ EOF
     initialPassword = "nixos";  # Change this!
   };
 
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.05";
 }
 EOF
     
@@ -402,7 +402,7 @@ setup_wizard() {
 { config, pkgs, ... }:
 
 {
-  home.stateVersion = "24.11";
+  home.stateVersion = "25.05";
   
   programs = {
     bash.enable = true;
