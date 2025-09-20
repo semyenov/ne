@@ -65,66 +65,43 @@
         } else { };
       };
       
-      flake = {
+      flake = let
+        # Function to create a host configuration
+        mkHost = hostName: nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = { inherit inputs; };
+          
+          modules = [
+            # Host-specific configuration (includes hardware and base)
+            ./hosts/${hostName}/configuration.nix
+            
+            # Apply overlays
+            { nixpkgs.overlays = [ self.overlays.default self.overlays.unstable-packages ]; }
+            
+            # Home Manager as NixOS module
+            inputs.home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.extraSpecialArgs = { inherit inputs; };
+              home-manager.backupFileExtension = "backup";
+              
+              # User configurations
+              home-manager.users.semyenov = import ./home/users/semyenov.nix;
+            }
+          ];
+        };
+      in {
         # NixOS configurations
         nixosConfigurations = {
-          # Default configuration (nixos)
-          nixos = nixpkgs.lib.nixosSystem {
-            system = "x86_64-linux";
-            specialArgs = { inherit inputs; };
-            
-            modules = [
-              # Hardware configuration
-              ./hosts/default/hardware-configuration.nix
-              
-              # Main system configuration
-              ./hosts/default/configuration.nix
-              
-              # Apply overlays
-              { nixpkgs.overlays = [ self.overlays.default self.overlays.unstable-packages ]; }
-              
-              # Home Manager as NixOS module
-              inputs.home-manager.nixosModules.home-manager
-              {
-                home-manager.useGlobalPkgs = true;
-                home-manager.useUserPackages = true;
-                home-manager.extraSpecialArgs = { inherit inputs; };
-                home-manager.backupFileExtension = "backup";
-                
-                # User configurations
-                home-manager.users.semyenov = import ./home/users/semyenov.nix;
-              }
-            ];
-          };
+          # Default configuration
+          nixos = mkHost "default";
           
-          # Configuration for semyenov.local
-          "semyenov.local" = nixpkgs.lib.nixosSystem {
-            system = "x86_64-linux";
-            specialArgs = { inherit inputs; };
-            
-            modules = [
-              # Hardware configuration
-              ./hosts/semyenov.local/hardware-configuration.nix
-              
-              # Main system configuration
-              ./hosts/semyenov.local/configuration.nix
-              
-              # Apply overlays
-              { nixpkgs.overlays = [ self.overlays.default self.overlays.unstable-packages ]; }
-              
-              # Home Manager as NixOS module
-              inputs.home-manager.nixosModules.home-manager
-              {
-                home-manager.useGlobalPkgs = true;
-                home-manager.useUserPackages = true;
-                home-manager.extraSpecialArgs = { inherit inputs; };
-                home-manager.backupFileExtension = "backup";
-                
-                # User configurations
-                home-manager.users.semyenov = import ./home/users/semyenov.nix;
-              }
-            ];
-          };
+          # Host-specific configurations
+          "semyenov.local" = mkHost "semyenov.local";
+          
+          # Add more hosts here as needed:
+          # "hostname" = mkHost "hostname";
         };
         
         # Overlays for package modifications

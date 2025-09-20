@@ -19,8 +19,6 @@
     timeout = 3;
   };
 
-  # Nvidia specifics moved into profiles/nvidia.nix
-
   # Networking
   networking = {
     hostName = "nixos";
@@ -45,12 +43,6 @@
 
   console = { font = "Lat2-Terminus16"; useXkbConfig = true; };
 
-  # Audio/desktop handled in desktop profile
-
-  # GUI handled in desktop profile
-
-  # Printing/Bluetooth handled in desktop profile
-
   # User accounts
   users.groups.semyenov = {
     gid = 1000;
@@ -71,21 +63,7 @@
       "libvirtd"
     ];
     shell = pkgs.fish; # Fish as default shell
-    # initialPassword = "changeme"; # Remember to change this!
   };
-
-  # Unfree handled in base profile
-
-  # Fonts handled in desktop profile
-
-  # Add overlays
-  # Overlays set at flake level or base profile
-
-  # System packages
-  # Packages moved to profiles as needed
-
-  # Environment variables
-  # Environment variables moved to profiles if needed
 
   # Shell aliases
   environment.shellAliases = {
@@ -121,21 +99,6 @@
     generations = "sudo nix-env --list-generations --profile /nix/var/nix/profiles/system";
   };
 
-  # Programs configuration
-  # Programs moved to profiles or HM
-
-  # Virtualisation
-  # Virtualisation handled in profiles
-
-  # Services
-  # Services mostly handled in profiles
-
-  # Nix configuration
-  # Nix settings moved to base profile
-
-  # System state version (DO NOT CHANGE)
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken.
+  # System state version
   system.stateVersion = "25.05";
 }
