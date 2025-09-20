@@ -1,8 +1,8 @@
 { config, pkgs, lib, ... }:
 
 {
-  # Minimal home-manager configuration for enterprise users
-  # Most configuration is handled by the enterprise module
+  # Base home-manager configuration for all users
+  # This provides the minimal setup that every user should have
   
   home.stateVersion = "25.05";
   
@@ -19,12 +19,12 @@
     };
     
     git = {
-      enable = true;
-      # User details are set by enterprise module based on username
+      enable = lib.mkDefault true;
+      # User details can be overridden in user-specific configs
       extraConfig = {
-        init.defaultBranch = "main";
-        pull.rebase = false;
-        core.editor = "vim";
+        init.defaultBranch = lib.mkDefault "main";
+        pull.rebase = lib.mkDefault false;
+        core.editor = lib.mkDefault "vim";
       };
     };
     

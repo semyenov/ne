@@ -1,6 +1,14 @@
 { config, pkgs, lib, inputs, ... }:
 
 {
+  imports = [
+    ../minimal.nix  # Base configuration for all users
+    ../profiles/common.nix
+    ../profiles/desktop.nix
+    ../profiles/sysadmin.nix
+  ];
+
+  # Override specific user settings
   home = {
     username = "semyenov";
     homeDirectory = "/home/semyenov";
@@ -15,12 +23,7 @@
     ];
   };
 
-  imports = [
-    ../profiles/common.nix
-    ../profiles/desktop.nix
-    ../profiles/sysadmin.nix
-  ];
-
+  # Override git configuration with user-specific details
   programs.git = {
     enable = true;
     userName = "Alexander Semyenov";
