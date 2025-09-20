@@ -38,7 +38,7 @@
   # Fonts
   fonts = {
     packages = with pkgs; [
-      (nerd-fonts.recursive-mono)
+      nerd-fonts.recursive-mono
       noto-fonts
       noto-fonts-cjk-sans
       noto-fonts-emoji
@@ -82,5 +82,3 @@
   # Disable USBGuard if not needed (causing errors)
   services.usbguard.enable = lib.mkForce false;
 }
-
-

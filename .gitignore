@@ -17,8 +17,14 @@ result-*
 *.key
 *.pem
 *.crt
-secrets/
-.secrets/
+*.age
+secrets/**/*.yaml
+secrets/**/*.yml
+secrets/**/*.json
+!secrets/.sops.yaml
+!secrets/**/.gitkeep
+!secrets/README.md
+/var/lib/sops-nix/
 
 # Editor and IDE files
 .vscode/
@@ -35,6 +41,8 @@ Thumbs.db
 *.log
 *.bak
 *.cache
+host-report-*.txt
+/tmp/deploy-log-*
 
 # Python
 __pycache__/

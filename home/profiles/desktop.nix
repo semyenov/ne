@@ -7,14 +7,18 @@
     chromium
     vlc
     spotify
-    gimp
-    inkscape
     obs-studio
     obsidian
     libreoffice
     thunderbird
     dconf
     gnome-tweaks
+    cursor-appimage
+    nekoray
+    yandex-music
+    telegram-desktop
+    bun
+    nodejs
   ];
 
   xdg = {
@@ -53,5 +57,3 @@
 
   programs.vscode.enable = true;
 }
-
-

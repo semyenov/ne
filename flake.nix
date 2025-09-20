@@ -30,104 +30,97 @@
     };
   };
 
-  outputs = inputs@{ self, nixpkgs, ... }: 
-    let
-      system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
-    in
-    {
-      # NixOS configurations
-      nixosConfigurations = {
-        # Default configuration - replace 'nixos' with your hostname
-        nixos = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          
-          # Pass inputs to NixOS modules
-          specialArgs = { inherit inputs; };
-          
-          modules = [
-            # Hardware configuration
-            ./hosts/default/hardware-configuration.nix
-            
-            # Main system configuration
-            ./hosts/default/configuration.nix
-            
-            # Apply overlays from this flake
-            { nixpkgs.overlays = [ self.overlays.default self.overlays.unstable-packages ]; }
-
-            # Home Manager as NixOS module
-            inputs.home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.extraSpecialArgs = { inherit inputs; };
-              home-manager.backupFileExtension = "backup";
-
-              # User configurations
-              home-manager.users.semyenov = import ./home/users/semyenov.nix;
-            }
-
-            # Custom modules
-            # ./modules/system/base.nix
+  outputs = inputs@{ self, nixpkgs, flake-parts, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
+      systems = [ "x86_64-linux" "aarch64-darwin" ];
+      
+      perSystem = { config, self', pkgs, system, ... }: {
+        # Development shell
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            git
+            nixpkgs-fmt
+            statix
+            deadnix
+            nil
+            nixd
           ];
+          
+          shellHook = ''
+            echo "NixOS Development Shell"
+            echo "Available commands:"
+            echo "  nixos-rebuild switch --flake .#nixos"
+            echo "  nix flake update"
+            echo "  nix flake check"
+          '';
         };
-
-        # Add more host configurations here
-        # laptop = nixpkgs.lib.nixosSystem { ... };
-        # desktop = nixpkgs.lib.nixosSystem { ... };
+        
+        # Formatter
+        formatter = pkgs.nixpkgs-fmt;
+        
+        # Custom packages (only for Linux)
+        packages = if system == "x86_64-linux" then {
+          cursor-appimage = pkgs.callPackage ./packages/cursor-appimage.nix { };
+          yandex-music = pkgs.callPackage ./packages/yandex-music.nix { };
+        } else { };
       };
-
-      # Development shell
-      devShells.${system}.default = pkgs.mkShell {
-        packages = with pkgs; [
-          git
-          nixpkgs-fmt
-          statix
-          deadnix
-          nil # Nix language server
-        ];
-
-        shellHook = ''
-          echo "NixOS Development Shell"
-          echo "Available commands:"
-          echo "  nixos-rebuild switch --flake .#nixos"
-          echo "  nix flake update"
-          echo "  nix flake check"
-        '';
-      };
-
-      # Formatter
-      formatter.${system} = pkgs.nixpkgs-fmt;
-
-      # Custom packages
-      packages.${system} = {
-        cursor-appimage = pkgs.callPackage ./packages/cursor-appimage.nix { };
-        yandex-music = pkgs.callPackage ./packages/yandex-music.nix { };
-      };
-
-      # Overlays for package modifications
-      overlays = {
-        default = import ./overlays/default.nix;
-
-        # Add unstable packages overlay
-        unstable-packages = final: prev: {
-          unstable = import inputs.nixpkgs-unstable {
-            system = prev.system;
-            config.allowUnfree = true;
+      
+      flake = {
+        # NixOS configurations
+        nixosConfigurations = {
+          nixos = nixpkgs.lib.nixosSystem {
+            system = "x86_64-linux";
+            specialArgs = { inherit inputs; };
+            
+            modules = [
+              # Hardware configuration
+              ./hosts/default/hardware-configuration.nix
+              
+              # Main system configuration
+              ./hosts/default/configuration.nix
+              
+              # Apply overlays
+              { nixpkgs.overlays = [ self.overlays.default self.overlays.unstable-packages ]; }
+              
+              # Home Manager as NixOS module
+              inputs.home-manager.nixosModules.home-manager
+              {
+                home-manager.useGlobalPkgs = true;
+                home-manager.useUserPackages = true;
+                home-manager.extraSpecialArgs = { inherit inputs; };
+                home-manager.backupFileExtension = "backup";
+                
+                # User configurations
+                home-manager.users.semyenov = import ./home/users/semyenov.nix;
+              }
+            ];
           };
         };
-      };
-
-      # NixOS modules that can be imported by other flakes
-      nixosModules = {
-        # example-module = ./modules/example.nix;
-      };
-
-      # Templates for creating new NixOS configurations
-      templates = {
-        default = {
-          path = ./.;
-          description = "A modern NixOS configuration template";
+        
+        # Overlays for package modifications
+        overlays = {
+          default = import ./overlays/default.nix;
+          
+          # Add unstable packages overlay
+          unstable-packages = final: prev: {
+            unstable = import inputs.nixpkgs-unstable {
+              system = prev.system;
+              config.allowUnfree = true;
+            };
+          };
+        };
+        
+        # NixOS modules that can be imported by other flakes
+        nixosModules = {
+          # example-module = ./modules/example.nix;
+        };
+        
+        # Templates for creating new NixOS configurations
+        templates = {
+          default = {
+            path = ./.;
+            description = "A modern NixOS configuration template";
+          };
         };
       };
     };

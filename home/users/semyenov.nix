@@ -5,6 +5,14 @@
     username = "semyenov";
     homeDirectory = "/home/semyenov";
     stateVersion = "24.11";
+
+    # User-specific packages
+    packages = with pkgs; [
+      cursor-appimage
+      yandex-music
+      nekoray
+      thunderbird
+    ];
   };
 
   imports = [
@@ -27,5 +35,3 @@
     };
   };
 }
-
-

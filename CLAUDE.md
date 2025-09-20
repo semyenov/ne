@@ -4,11 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Type
 
-This is a **NixOS configuration repository** using Nix Flakes and flake-parts for modular, reproducible system configuration. It includes:
-- System-level NixOS configurations
+This is a **NixOS configuration repository** using Nix Flakes for personal system configuration with:
+- Single-host NixOS system configuration
 - Home Manager for user environment management
-- Custom NixOS modules for services and security
-- Modern CLI tools and development environment setup
+- Modular profile-based architecture
+- Custom packages (cursor-appimage, yandex-music)
+- Modern CLI tools and development environment
 
 ## Common Development Commands
 
@@ -66,53 +67,101 @@ deadnix
 ## Architecture Overview
 
 ### Flake Structure
-- **flake.nix**: Main entry point using flake-parts for modular organization. Defines nixosConfigurations, devShells, overlays, and formatter.
-- **flake.lock**: Pins all dependencies for reproducible builds.
+- **flake.nix**: Main configuration for single host
+- **flake.lock**: Pins all dependencies for reproducible builds
 
 ### Key Directories
 - **hosts/**: Host-specific configurations
-  - Each host has `configuration.nix` (system config) and `hardware-configuration.nix` (hardware settings)
-  - Currently configured host: "nixos" (default)
+  - `default/`: Main host configuration with hardware config
 
-- **home/**: Home Manager user configurations
-  - `default.nix` defines user packages, dotfiles, and program configurations
-  - Manages shells (fish, zsh, bash), development tools (neovim, vscode), and desktop apps
+- **profiles/**: Modular system profiles
+  - `base.nix`: Core system settings
+  - `desktop-gnome.nix`: GNOME desktop environment
+  - `nvidia.nix`: NVIDIA GPU configuration
+  - `docker.nix`: Docker runtime
+  - `security-hardened.nix`: Security enhancements
+  - `system-optimizations.nix`: Performance optimizations
 
-- **modules/**: Reusable NixOS modules
-  - `system/`: System-wide modules (e.g., security hardening)
-  - `services/`: Service configurations (e.g., Docker setup)
-  - Modules are imported but not yet activated in the default configuration
+- **home/**: Home Manager configurations
+  - `minimal.nix`: Minimal user configuration
+  - `users/semyenov.nix`: Primary user configuration
+  - `profiles/`: Modular Home Manager profiles
+    - `common.nix`: Basic home settings
+    - `desktop.nix`: Desktop applications
+    - `sysadmin.nix`: System administration tools
+
+- **packages/**: Custom packages
+  - `cursor-appimage.nix`: Cursor AI editor
+  - `yandex-music.nix`: Yandex Music app
+
+- **overlays/**: Package overlays
+  - `default.nix`: Custom package modifications
 
 ### Configuration Patterns
-1. **Flake Inputs**: Uses nixpkgs stable (24.11), nixpkgs-unstable, home-manager, flake-parts, nixos-hardware, and disko
-2. **Overlay System**: Unstable packages accessible via `unstable.<package>` (e.g., `unstable.claude-code`)
-3. **Modern CLI Tools**: Extensive collection of Rust-based modern CLI replacements (bat, ripgrep, fd, exa, etc.)
-4. **Shell Aliases**: Configured to use modern tool replacements by default
-5. **Home Manager Integration**: Runs as a NixOS module for unified system management
+1. **Flake Inputs**: nixpkgs stable (25.05), nixpkgs-unstable, home-manager (25.05)
+2. **Profile-Based Architecture**: Modular profiles for easy feature composition
+3. **Overlay System**: Unstable packages accessible via `unstable.<package>`
+4. **Modern CLI Tools**: Comprehensive modern CLI replacements (bat, ripgrep, fd, lsd, etc.)
+5. **Shell Aliases**: Configured to use modern tool replacements by default
+6. **Home Manager Integration**: Runs as NixOS module with profile-based configurations
 
 ### Important Configuration Details
-- **Default User**: "user" (defined in hosts/default/configuration.nix and home/default.nix)
-- **Default Shell**: Fish shell with starship prompt
-- **Experimental Features**: Flakes and nix-command are enabled
-- **Binary Caches**: nixos.org and nix-community configured for faster builds
-- **Garbage Collection**: Weekly automatic cleanup keeping 30 days of history
+- **Primary User**: "semyenov" (UID: 1000, GID: 1000)
+- **Default Shell**: Fish shell
+- **System State Version**: 24.11 (for stateful data compatibility)
+- **Experimental Features**: Flakes and nix-command enabled
+- **Binary Caches**: nixos.org and nix-community configured
+- **Garbage Collection**: Weekly automatic cleanup keeping 30 days
+- **Auto-optimization**: Nix store auto-optimization enabled
 
-## Adding New Configurations
+## Current System Stack
 
-### To add a new host:
-1. Create directory under `hosts/<hostname>/`
-2. Copy and modify configuration files from `hosts/default/`
-3. Add nixosConfiguration entry in flake.nix
-4. Rebuild with `sudo nixos-rebuild switch --flake .#<hostname>`
+### Desktop Environment
+- GNOME with Wayland
+- NVIDIA drivers with CUDA support
+- PipeWire audio system
+- RecMono Nerd Font as default monospace font
 
-### To enable custom modules:
-Import modules in host configuration and set their enable options:
-```nix
-imports = [
-  ../../modules/system/security.nix
-  ../../modules/services/docker.nix
-];
+### Included Applications
+- **Browsers**: Brave, Chromium
+- **Media**: VLC, Spotify
+- **Development**: Cursor AI, VS Code, Node.js, Bun
+- **Communication**: Telegram Desktop, Thunderbird
+- **Productivity**: Obsidian, LibreOffice
+- **Custom**: Yandex Music, Nekoray proxy
 
-modules.system.security.enable = true;
-modules.services.docker.enable = true;
-```
+### Development Tools
+- **Version Control**: git, lazygit, delta, gitui
+- **Containers**: Docker, docker-compose, lazydocker, dive
+- **Kubernetes**: kubectl, k9s, helm, kind
+- **Infrastructure**: terraform, ansible
+- **Cloud CLIs**: AWS, GCP, Azure
+- **Databases**: PostgreSQL, MySQL, Redis clients
+- **Language Servers**: nil, nixd (both Nix LSPs)
+
+### System Administration
+- **Monitoring**: btop, htop, iotop, nethogs, bandwhich
+- **Network**: nmap, tcpdump, wireshark, traceroute
+- **Security**: lynis, aide, fail2ban
+- **Backup**: restic, borgbackup, rsync
+- **Modern CLI**: bat, ripgrep, fd, lsd, dust, duf, procs
+
+## Adding New Features
+
+### To modify the configuration:
+1. Edit relevant files in `profiles/` or `home/profiles/`
+2. Test with `sudo nixos-rebuild test --flake .#nixos`
+3. Apply with `sudo nixos-rebuild switch --flake .#nixos`
+
+### To add new packages:
+1. Add to `environment.systemPackages` in appropriate profile
+2. Or add to `home.packages` in user configuration
+3. Custom packages go in `packages/` directory
+
+## Important Notes
+
+- Always use `nix flake check` before committing changes
+- Run `nixpkgs-fmt` on modified files for consistent formatting
+- The configuration is for personal use on a single host
+- Shell aliases use modern tool replacements by default
+- NVIDIA and Docker support are included in the base configuration
