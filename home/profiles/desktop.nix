@@ -14,6 +14,7 @@
     dconf
     gnome-tweaks
     cursor-appimage
+    unstable.claude-code  # Claude Code from unstable
     nekoray
     yandex-music
     telegram-desktop
