@@ -68,6 +68,7 @@
       flake = {
         # NixOS configurations
         nixosConfigurations = {
+          # Default configuration (nixos)
           nixos = nixpkgs.lib.nixosSystem {
             system = "x86_64-linux";
             specialArgs = { inherit inputs; };
@@ -78,6 +79,35 @@
               
               # Main system configuration
               ./hosts/default/configuration.nix
+              
+              # Apply overlays
+              { nixpkgs.overlays = [ self.overlays.default self.overlays.unstable-packages ]; }
+              
+              # Home Manager as NixOS module
+              inputs.home-manager.nixosModules.home-manager
+              {
+                home-manager.useGlobalPkgs = true;
+                home-manager.useUserPackages = true;
+                home-manager.extraSpecialArgs = { inherit inputs; };
+                home-manager.backupFileExtension = "backup";
+                
+                # User configurations
+                home-manager.users.semyenov = import ./home/users/semyenov.nix;
+              }
+            ];
+          };
+          
+          # Configuration for semyenov.local
+          "semyenov.local" = nixpkgs.lib.nixosSystem {
+            system = "x86_64-linux";
+            specialArgs = { inherit inputs; };
+            
+            modules = [
+              # Hardware configuration
+              ./hosts/semyenov.local/hardware-configuration.nix
+              
+              # Main system configuration
+              ./hosts/semyenov.local/configuration.nix
               
               # Apply overlays
               { nixpkgs.overlays = [ self.overlays.default self.overlays.unstable-packages ]; }

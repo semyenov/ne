@@ -14,7 +14,8 @@
       "Bash(journalctl:*)",
       "Bash(systemctl:*)",
       "Bash(curl:*)",
-      "Bash(nix --extra-experimental-features 'nix-command flakes' flake check)"
+      "Bash(nix --extra-experimental-features 'nix-command flakes' flake check)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
